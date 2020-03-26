@@ -521,7 +521,7 @@ def edit_reputation(cursor, vote, vote_type, user_name):
                     UPDATE users
                     SET reputation =
                     (SELECT reputation  FROM users WHERE user_name = %(user_name)s)+%(reputation)s
-                    
+                    WHERE user_name = %(user_name)s
                     """, {'user_name': user_name, 'reputation': reputation})
 
 
