@@ -158,7 +158,7 @@ def get_question_id(cursor, answer_id):
 @connection.connection_handler
 def vote_up_question(cursor, question_id):
     cursor.execute(""" UPDATE question
-                       SET vote_number = vote_number + 1
+                       SET vote_number = vote_number + 1 
                        WHERE id = %(question_id)s;
     """,
                    {'question_id': question_id})
@@ -166,7 +166,7 @@ def vote_up_question(cursor, question_id):
 @connection.connection_handler
 def vote_down_question(cursor, question_id):
     cursor.execute(""" UPDATE question
-                       SET vote_number = vote_number - 1
+                       SET vote_number = vote_number - 1 
                        WHERE id = %(question_id)s;
     """,
                    {'question_id': question_id})
@@ -210,7 +210,7 @@ def add_new_tag_id(cursor,question_id):
 @connection.connection_handler
 def vote_up_answer(cursor, answer_id):
     cursor.execute(""" UPDATE answer
-                       SET vote_number = vote_number + 1
+                       SET vote_number = vote_number + 1 
                        WHERE id = %(answer_id)s;
     """,
                    {'answer_id': answer_id})
@@ -218,7 +218,7 @@ def vote_up_answer(cursor, answer_id):
 @connection.connection_handler
 def vote_down_answer(cursor, answer_id):
     cursor.execute(""" UPDATE answer
-                       SET vote_number = vote_number -1
+                       SET vote_number = vote_number - 1 
                        WHERE id = %(answer_id)s;
     """,
                    {'answer_id': answer_id})
@@ -268,7 +268,7 @@ def get_question_id_from_answer_id(cursor, answer_id):
 @connection.connection_handler
 def add_new_question_comment(cursor, question_comment):
     cursor.execute("""
-                    INSERT INTO comment (id, question_id, message, submission_time, edited_count,user_id)
+                    INSERT INTO comment (id, question_id, message, submission_time, edited_count, user_id, user_name)
                     VALUES (%s, %s, %s, %s, %s,%s)
                     """,
                    (question_comment['id'],
@@ -276,14 +276,15 @@ def add_new_question_comment(cursor, question_comment):
                     question_comment['message'],
                     question_comment['submission_time'],
                     question_comment['edited_count'],
-                    question_comment['user_id'],   )
+                    question_comment['user_id'],
+                    question_comment['user_name'],  )
                     )
 
 
 @connection.connection_handler
 def add_new_answer_comment(cursor, answer_comment):
     cursor.execute("""
-                    INSERT INTO comment (id, answer_id, message, submission_time, edited_count, user_id)
+                    INSERT INTO comment (id, answer_id, message, submission_time, edited_count, user_id, user_name)
                     VALUES (%s, %s, %s, %s, %s,%s)
                     """,
                    (answer_comment['id'],
@@ -291,7 +292,8 @@ def add_new_answer_comment(cursor, answer_comment):
                     answer_comment['message'],
                     answer_comment['submission_time'],
                     answer_comment['edited_count'],
-                    answer_comment['user_id'],)
+                    answer_comment['user_id'],
+                    answer_comment['user_name'],)
                     )
 
 
@@ -502,3 +504,54 @@ def unmark_accepted_answer(cursor, answer_id):
                     WHERE id = %(answer_id)s;
                     """,
                    {'answer_id': answer_id})
+
+
+@connection.connection_handler
+def edit_reputation(cursor, vote, vote_type, user_name):
+    reputation = 0
+    if vote == -1:
+        reputation = - 2
+    elif vote == 1:
+        if vote_type == 'question':
+            reputation = 5
+        elif vote_type == 'answer':
+            reputation = 10
+
+    cursor.execute("""
+                    UPDATE users
+                    SET reputation =
+                    (SELECT reputation  FROM users WHERE user_name = %(user_name)s)+%(reputation)s
+                    
+                    """, {'user_name': user_name, 'reputation': reputation})
+
+
+@connection.connection_handler
+def get_answer_owner(cursor, answer_id):
+    cursor.execute(""" 
+                    SELECT user_id
+                    FROM answer
+                    WHERE id = %(answer_id)s
+                    """, {'answer_id': answer_id})
+    user_i = cursor.fetchone()['user_id']
+    return user_i
+
+@connection.connection_handler
+def get_question_owner(cursor, question_id):
+    cursor.execute(""" 
+                    SELECT user_id
+                    FROM question
+                    WHERE id = %(question_id)s
+                    """, {'question_id': question_id})
+
+    user_i = cursor.fetchone()['user_id']
+    return user_i
+
+
+@connection.connection_handler
+def get_user_name_after_id(cursor, id):
+    cursor.execute(""" SELECT user_name 
+                       FROM users
+                       WHERE id = %(id)s;
+    """, {'id': id})
+    user = cursor.fetchone()['user_name']
+    return user

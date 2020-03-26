@@ -204,21 +204,37 @@ def delete_from_db(question_id):
 @app.route('/question/<question_id>/vote_up/', methods=['GET', 'POST'])
 def vote_up(question_id):
     data_manager.vote_up_question(question_id)
+    user_id = data_manager.get_question_owner(question_id)
+    owner_user = data_manager.get_user_name_after_id(user_id)
+    vote = 1
+    data_manager.edit_reputation(vote, 'question', owner_user)
     return redirect(request.referrer)
 
 @app.route('/question/<question_id>/vote_down/', methods=['GET', 'POST'])
 def vote_down(question_id):
     data_manager.vote_down_question(question_id)
+    user_id = data_manager.get_question_owner(question_id)
+    owner_user = data_manager.get_user_name_after_id(user_id)
+    vote = -1
+    data_manager.edit_reputation(vote, 'question', owner_user)
     return redirect(request.referrer)
 
 @app.route('/answer/<answer_id>/vote_up')
 def vote_up_answer(answer_id):
     data_manager.vote_up_answer(answer_id)
+    user_id = data_manager.get_answer_owner(answer_id)
+    owner_user = data_manager.get_user_name_after_id(user_id)
+    vote = 1
+    data_manager.edit_reputation(vote, 'answer', owner_user)
     return redirect(request.referrer)
 
 @app.route('/answer/<answer_id>/vote_down')
 def vote_down_answer(answer_id):
     data_manager.vote_down_answer(answer_id)
+    user_id = data_manager.get_answer_owner(answer_id)
+    owner_user = data_manager.get_user_name_after_id(user_id)
+    vote = -1
+    data_manager.edit_reputation(vote, 'answer', owner_user)
     return redirect(request.referrer)
 
 
